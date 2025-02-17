@@ -1,0 +1,177 @@
+// Firebase configuration and initialization
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { Trash2, Check, Edit, Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+// Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const TodoApp = () => {
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+
+  // Fetch todos from Firebase
+  useEffect(() => {
+    const q = query(collection(db, 'todos'), orderBy('timestamp', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const todoData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTodos(todoData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Add new todo
+  const addTodo = async (e) => {
+    e.preventDefault();
+    if (!newTodo.trim()) return;
+
+    try {
+      await addDoc(collection(db, 'todos'), {
+        text: newTodo,
+        completed: false,
+        timestamp: new Date().getTime()
+      });
+      setNewTodo('');
+    } catch (error) {
+      console.error('Error adding todo:', error);
+    }
+  };
+
+  // Delete todo
+  const deleteTodo = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'todos', id));
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
+  };
+
+  // Toggle todo completion
+  const toggleComplete = async (id, completed) => {
+    try {
+      await updateDoc(doc(db, 'todos', id), {
+        completed: !completed
+      });
+    } catch (error) {
+      console.error('Error updating todo:', error);
+    }
+  };
+
+  // Update todo text
+  const updateTodo = async (id) => {
+    if (!editingText.trim()) return;
+    
+    try {
+      await updateDoc(doc(db, 'todos', id), {
+        text: editingText
+      });
+      setEditingId(null);
+      setEditingText('');
+    } catch (error) {
+      console.error('Error updating todo:', error);
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Todo List</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Add Todo Form */}
+        <form onSubmit={addTodo} className="flex gap-2 mb-6">
+          <Input
+            type="text"
+            value={newTodo}
+            onChange={(e) => setNewTodo(e.target.value)}
+            placeholder="Add a new todo..."
+            className="flex-grow"
+          />
+          <Button type="submit">
+            <Plus className="w-4 h-4 mr-2" />
+            Add
+          </Button>
+        </form>
+
+        {/* Todo List */}
+        <div className="space-y-2">
+          {todos.map(todo => (
+            <div
+              key={todo.id}
+              className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleComplete(todo.id, todo.completed)}
+                className={`${todo.completed ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                <Check className="w-5 h-5" />
+              </Button>
+
+              {editingId === todo.id ? (
+                <div className="flex gap-2 flex-grow">
+                  <Input
+                    type="text"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    className="flex-grow"
+                  />
+                  <Button onClick={() => updateTodo(todo.id)}>Save</Button>
+                  <Button variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                </div>
+              ) : (
+                <>
+                  <span className={`flex-grow ${todo.completed ? 'line-through text-gray-500' : ''}`}>
+                    {todo.text}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingId(todo.id);
+                      setEditingText(todo.text);
+                    }}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteTodo(todo.id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default TodoApp;
