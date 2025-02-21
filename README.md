@@ -1,3 +1,6 @@
 I'll add my daily practise and learning of the full stack so everything i learned till now is updated 
-Date- 18-02-2024 : I'll do css complete and make some projects on html css
+18 feb: css started
+19 feb: css 
+20 feb: css 
+21 feb: css near end 
 Author- Shauryaman
