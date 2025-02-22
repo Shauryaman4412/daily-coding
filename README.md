@@ -3,4 +3,5 @@ I'll add my daily practise and learning of the full stack so everything i learne
 19 feb: css 
 20 feb: css 
 21 feb: css near end 
+22 feb: learned how to use figma and done with css
 Author- Shauryaman
