@@ -8,5 +8,5 @@ I'll add my daily practise and learning of the full stack so everything i learne
 24-25 feb: did css
 26 feb: made a landing page using html css
 27 feb installed tailwind css and trying to speed up after shifting back home 
-28 feb: used free camp code for improving the skills too 
+28 feb: used free camp code for improving the skills too and learning using 30days of coding
 Author- Shauryaman
